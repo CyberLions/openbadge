@@ -2,6 +2,7 @@ import { Router } from "express";
 import { generateKeyPairSync } from "crypto";
 import { prisma } from "../utils/prisma";
 import { z } from "zod";
+import { audit } from "../services/audit";
 
 export const issuerRouter = Router();
 
@@ -53,6 +54,7 @@ issuerRouter.post("/", async (req, res) => {
     include: { signingKeys: { select: { id: true, algorithm: true, publicKeyPem: true } } },
   });
 
+  audit({ action: "issuer.created", targetType: "issuer", targetId: issuer.id, details: { name: parsed.data.name }, req });
   res.status(201).json(issuer);
 });
 
@@ -65,11 +67,13 @@ issuerRouter.put("/:id", async (req, res) => {
     where: { id: req.params.id },
     data: parsed.data,
   });
+  audit({ action: "issuer.updated", targetType: "issuer", targetId: issuer.id, details: parsed.data, req });
   res.json(issuer);
 });
 
 // Delete issuer
 issuerRouter.delete("/:id", async (req, res) => {
   await prisma.issuer.delete({ where: { id: req.params.id } });
+  audit({ action: "issuer.deleted", targetType: "issuer", targetId: req.params.id, req });
   res.status(204).end();
 });

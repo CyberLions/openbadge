@@ -1,0 +1,150 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ "main" , "staging" ]
+
+jobs:
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Extract branch name
+      shell: bash
+      run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+      id: extract_branch
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to CCSO Docker Registry
+      uses: docker/login-action@v3
+      with:
+        registry: registry.psuccso.org
+        username: robot$openbadge+github
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Generate Backend Tag Names
+      run: |
+        echo "${{ steps.extract_branch.outputs.branch }}"
+        if [ ${{ steps.extract_branch.outputs.branch }} = "main" ]; then
+          echo "TAG_LATEST_BACKEND=openbadge-backend:latest" >> $GITHUB_ENV
+          echo "TAG_COMMIT_BACKEND=openbadge-backend:$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        elif [ ${{ steps.extract_branch.outputs.branch }} = "staging" ]; then
+          echo "TAG_LATEST_BACKEND=openbadge-backend-stage:latest" >> $GITHUB_ENV
+          echo "TAG_COMMIT_BACKEND=openbadge-backend-stage:$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        else
+          exit 0
+        fi
+
+    - name: Build and push Backend
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        file: ./backend/.docker/Dockerfile
+        push: true
+        tags: |
+          registry.psuccso.org/openbadge/${{ env.TAG_LATEST_BACKEND }}
+          registry.psuccso.org/openbadge/${{ env.TAG_COMMIT_BACKEND }}
+        cache-from: type=registry,ref=registry.psuccso.org/openbadge/${{ env.TAG_LATEST_BACKEND }}
+        cache-to: type=inline
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Extract branch name
+      shell: bash
+      run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+      id: extract_branch
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to CCSO Docker Registry
+      uses: docker/login-action@v3
+      with:
+        registry: registry.psuccso.org
+        username: robot$openbadge+github
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Generate Frontend Tag Names
+      run: |
+        echo "${{ steps.extract_branch.outputs.branch }}"
+        if [ ${{ steps.extract_branch.outputs.branch }} = "main" ]; then
+          echo "TAG_LATEST_FRONTEND=openbadge-frontend:latest" >> $GITHUB_ENV
+          echo "TAG_COMMIT_FRONTEND=openbadge-frontend:$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        elif [ ${{ steps.extract_branch.outputs.branch }} = "staging" ]; then
+          echo "TAG_LATEST_FRONTEND=openbadge-frontend-stage:latest" >> $GITHUB_ENV
+          echo "TAG_COMMIT_FRONTEND=openbadge-frontend-stage:$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        else
+          exit 0
+        fi
+
+    - name: Build and push Frontend
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        file: ./frontend/.docker/Dockerfile
+        push: true
+        tags: |
+          registry.psuccso.org/openbadge/${{ env.TAG_LATEST_FRONTEND }}
+          registry.psuccso.org/openbadge/${{ env.TAG_COMMIT_FRONTEND }}
+        cache-from: type=registry,ref=registry.psuccso.org/openbadge/${{ env.TAG_LATEST_FRONTEND }}
+        cache-to: type=inline
+
+  deploy-rancher:
+    needs: [build-backend, build-frontend]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Extract branch name
+      shell: bash
+      run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+      id: extract_branch
+
+    - name: Redeploy Rancher
+      run: |
+        url='https://rancher.psuccso.org'
+        cluster=local
+        token=${{ secrets.RANCHER_TOKEN }}
+
+        redeploy() {
+            local app=$1
+            pod_upgrade_body=$(curl -s -u "$token" \
+            -k $url/k8s/clusters/$cluster/v1/apps.deployments/$namespace/$app \
+            -X GET \
+            -H 'Accept: application/json' \
+            -H 'Content-Type: application/json' \
+            -H 'Pragma: no-cache' \
+            -H 'Cache-Control: no-cache' 2>&1 | sed  "s/\"cattle\.io\/timestamp\"\:\"[0-9T:Z-]*\"/\"cattle\.io\/timestamp\":\"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"/g")
+
+            curl -u "$token" \
+            -k -s $url/k8s/clusters/$cluster/v1/apps.deployments/$namespace/$app \
+            -X PUT \
+            -H 'Accept: application/json' \
+            -H 'Content-Type: application/json' \
+            --data-binary "$pod_upgrade_body" --compressed
+        }
+
+        echo "${{ steps.extract_branch.outputs.branch }}"
+        if [ ${{ steps.extract_branch.outputs.branch }} = "main" ]; then
+            namespace=openbadge
+            redeploy "backend"
+            redeploy "frontend"
+        elif [ ${{ steps.extract_branch.outputs.branch }} = "staging" ]; then
+            namespace=openbadge-staging
+            redeploy "backend"
+            redeploy "frontend"
+        else
+            exit 0
+        fi

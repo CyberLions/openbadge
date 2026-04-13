@@ -38,6 +38,16 @@ export const router = createRouter({
       name: "assertions",
       component: () => import("../views/AssertionsView.vue"),
     },
+    {
+      path: "/api-keys",
+      name: "api-keys",
+      component: () => import("../views/ApiKeysView.vue"),
+    },
+    {
+      path: "/activity",
+      name: "activity-log",
+      component: () => import("../views/ActivityLogView.vue"),
+    },
     // Public badge viewing page
     {
       path: "/badges/:id",

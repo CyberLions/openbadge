@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../utils/prisma";
 import { z } from "zod";
+import { audit } from "../services/audit";
 
 export const badgeClassRouter = Router();
 
@@ -50,6 +51,7 @@ badgeClassRouter.post("/", async (req, res) => {
     },
     include: { issuer: true },
   });
+  audit({ action: "badgeclass.created", targetType: "badgeClass", targetId: badge.id, details: { name: parsed.data.name }, req });
   res.status(201).json(badge);
 });
 
@@ -64,11 +66,13 @@ badgeClassRouter.put("/:id", async (req, res) => {
     data: parsed.data,
     include: { issuer: true },
   });
+  audit({ action: "badgeclass.updated", targetType: "badgeClass", targetId: badge.id, details: parsed.data, req });
   res.json(badge);
 });
 
 // Delete badge class
 badgeClassRouter.delete("/:id", async (req, res) => {
   await prisma.badgeClass.delete({ where: { id: req.params.id } });
+  audit({ action: "badgeclass.deleted", targetType: "badgeClass", targetId: req.params.id, req });
   res.status(204).end();
 });

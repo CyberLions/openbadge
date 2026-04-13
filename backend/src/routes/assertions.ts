@@ -5,6 +5,7 @@ import { generateSalt } from "../utils/hashing";
 import { signAssertion } from "../utils/signing";
 import { buildAssertionJsonLd } from "../services/openbadges";
 import { sendBadgeEmail } from "../services/email";
+import { audit } from "../services/audit";
 
 export const assertionRouter = Router();
 
@@ -115,6 +116,14 @@ assertionRouter.post("/", async (req, res) => {
     }
   }
 
+  audit({
+    action: "badge.issued",
+    targetType: "assertion",
+    targetId: assertion.id,
+    details: { badgeClassId: parsed.data.badgeClassId, recipientEmail: parsed.data.recipientEmail },
+    req,
+  });
+
   res.status(201).json(assertion);
 });
 
@@ -177,7 +186,43 @@ assertionRouter.post("/bulk", async (req, res) => {
     results.push(assertion);
   }
 
+  audit({
+    action: "badge.bulk_issued",
+    targetType: "badgeClass",
+    targetId: parsed.data.badgeClassId,
+    details: { count: results.length, recipientEmails: parsed.data.recipients.map((r) => r.email) },
+    req,
+  });
+
   res.status(201).json(results);
+});
+
+// Resend email notification
+assertionRouter.post("/:id/resend-email", async (req, res) => {
+  const assertion = await prisma.assertion.findUnique({
+    where: { id: req.params.id },
+    include: { badgeClass: { include: { issuer: true } } },
+  });
+  if (!assertion) return res.status(404).json({ error: "Assertion not found" });
+
+  try {
+    await sendBadgeEmail({
+      to: assertion.recipientEmail,
+      recipientName: assertion.recipientName || undefined,
+      badgeName: assertion.badgeClass.name,
+      issuerName: assertion.badgeClass.issuer.name,
+      assertionId: assertion.id,
+      description: assertion.badgeClass.description,
+    });
+    await prisma.assertion.update({
+      where: { id: assertion.id },
+      data: { emailSent: true },
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to resend badge email:", err);
+    res.status(500).json({ error: "Failed to send email" });
+  }
 });
 
 // Revoke an assertion
@@ -188,5 +233,14 @@ assertionRouter.post("/:id/revoke", async (req, res) => {
     data: { revoked: true, revokedReason: reason },
     include: { badgeClass: { include: { issuer: true } } },
   });
+
+  audit({
+    action: "badge.revoked",
+    targetType: "assertion",
+    targetId: assertion.id,
+    details: { reason, recipientEmail: assertion.recipientEmail, badgeName: assertion.badgeClass.name },
+    req,
+  });
+
   res.json(assertion);
 });

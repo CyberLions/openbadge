@@ -72,3 +72,32 @@ model Assertion {
   @@index([badgeClassId])
   @@index([recipientEmail])
 }
+
+model ApiKey {
+  id          String   @id @default(uuid())
+  name        String
+  keyHash     String   @unique
+  keyPrefix   String
+  scopes      String[] @default(["*"])
+  active      Boolean  @default(true)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditEvent {
+  id          String   @id @default(uuid())
+  action      String
+  actor       String
+  actorType   String   @default("user")
+  targetType  String?
+  targetId    String?
+  details     Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([action])
+  @@index([actor])
+  @@index([createdAt])
+}

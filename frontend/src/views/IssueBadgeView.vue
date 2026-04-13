@@ -8,7 +8,8 @@
     </div>
     <div v-if="error" class="alert alert-error">{{ error }}</div>
 
-    <div class="card">
+    <div class="card card-accent">
+      <h2>Single Issuance</h2>
       <form @submit.prevent="handleIssue">
         <div class="form-group">
           <label>Badge Class *</label>
@@ -20,7 +21,9 @@
           </select>
         </div>
 
-        <h3 style="margin-bottom: 12px;">Recipient</h3>
+        <hr class="section-divider" />
+
+        <h3 style="margin-bottom: 16px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Recipient</h3>
         <div class="form-row">
           <div class="form-group">
             <label>Email *</label>
@@ -37,7 +40,9 @@
           <input v-model="form.expires" type="datetime-local" />
         </div>
 
-        <h3 style="margin: 16px 0 12px;">Evidence (optional)</h3>
+        <hr class="section-divider" />
+
+        <h3 style="margin-bottom: 16px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Evidence (optional)</h3>
         <div class="form-group">
           <label>Evidence URL</label>
           <input v-model="form.evidenceUrl" type="url" placeholder="https://example.org/evidence" />
@@ -47,14 +52,14 @@
           <textarea v-model="form.evidenceNarrative" placeholder="Description of the evidence..."></textarea>
         </div>
 
-        <div class="form-group">
-          <label>
-            <input type="checkbox" v-model="form.sendEmail" style="width: auto; margin-right: 6px;" />
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" v-model="form.sendEmail" id="sendEmail" style="width: auto;" />
+          <label for="sendEmail" style="margin-bottom: 0; text-transform: none; font-size: 14px; font-weight: 500; color: var(--text);">
             Send email notification to recipient
           </label>
         </div>
 
-        <button type="submit" class="btn btn-primary" :disabled="issuing">
+        <button type="submit" class="btn btn-gold" :disabled="issuing">
           {{ issuing ? 'Issuing...' : 'Issue Badge' }}
         </button>
       </form>
@@ -62,7 +67,7 @@
 
     <div class="card" style="margin-top: 24px;">
       <h2>Bulk Issue</h2>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">
+      <p class="text-muted" style="font-size: 13px; margin-bottom: 16px;">
         Paste comma-separated emails (one per line: email, name)
       </p>
       <div class="form-group">

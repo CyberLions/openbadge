@@ -1,13 +1,14 @@
 <template>
   <div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-      <h1 style="margin-bottom: 0;">Badge Classes</h1>
+    <div class="page-header">
+      <h1>Badge Classes</h1>
       <button class="btn btn-primary" @click="showForm = !showForm">
-        {{ showForm ? 'Cancel' : '+ New Badge Class' }}
+        <svg v-if="!showForm" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        {{ showForm ? 'Cancel' : 'New Badge Class' }}
       </button>
     </div>
 
-    <div v-if="showForm" class="card">
+    <div v-if="showForm" class="card card-accent" style="margin-bottom: 24px;">
       <h2>Create Badge Class</h2>
       <form @submit.prevent="handleCreate">
         <div class="form-group">
@@ -42,7 +43,7 @@
           <label>Tags (comma-separated)</label>
           <input v-model="tagsInput" placeholder="web, development, html" />
         </div>
-        <button type="submit" class="btn btn-primary" :disabled="saving || !form.imageUrl">
+        <button type="submit" class="btn btn-gold" :disabled="saving || !form.imageUrl">
           {{ saving ? 'Creating...' : 'Create Badge Class' }}
         </button>
       </form>
@@ -50,33 +51,60 @@
 
     <div v-if="error" class="alert alert-error">{{ error }}</div>
 
-    <div class="card-grid">
-      <div class="card" v-for="bc in badgeClasses" :key="bc.id">
-        <div style="display: flex; gap: 16px; align-items: start;">
-          <img :src="bc.imageUrl" style="width: 64px; height: 64px; border-radius: 8px; object-fit: contain; border: 1px solid var(--border);" />
-          <div>
-            <h3>{{ bc.name }}</h3>
-            <p style="font-size: 13px; color: var(--text-muted);">by {{ bc.issuer.name }}</p>
-            <p style="font-size: 14px; margin-top: 4px;">{{ bc.description }}</p>
-            <div style="margin-top: 6px;">
-              <span class="tag" v-for="tag in bc.tags" :key="tag">{{ tag }}</span>
+    <!-- Skeleton: card grid -->
+    <div v-if="loading" class="card-grid">
+      <div v-for="n in 3" :key="n" class="skeleton-card">
+        <div style="display: flex; gap: 16px; align-items: flex-start;">
+          <div class="skeleton skeleton-badge-img" style="width: 64px; height: 64px;"></div>
+          <div style="flex: 1;">
+            <div class="skeleton skeleton-heading" style="width: 55%;"></div>
+            <div class="skeleton skeleton-text w-1/3"></div>
+            <div class="skeleton skeleton-text w-full"></div>
+            <div style="display: flex; gap: 6px; margin-top: 8px;">
+              <div class="skeleton" style="width: 52px; height: 20px; border-radius: 50px;"></div>
+              <div class="skeleton" style="width: 64px; height: 20px; border-radius: 50px;"></div>
             </div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
-              {{ bc._count?.assertions || 0 }} issued
-            </p>
+            <div class="skeleton skeleton-text w-1/4" style="margin-top: 8px;"></div>
           </div>
         </div>
-        <div class="actions">
-          <router-link :to="`/badge-classes/${bc.id}`" class="btn btn-outline btn-sm">View</router-link>
-          <router-link :to="{ path: '/issue', query: { badgeClassId: bc.id } }" class="btn btn-primary btn-sm">Issue</router-link>
-          <button class="btn btn-danger btn-sm" @click="handleDelete(bc.id)">Delete</button>
+        <div style="display: flex; gap: 8px; margin-top: 14px;">
+          <div class="skeleton skeleton-btn"></div>
+          <div class="skeleton skeleton-btn"></div>
+          <div class="skeleton skeleton-btn"></div>
         </div>
       </div>
     </div>
 
-    <div v-if="badgeClasses.length === 0 && !showForm" class="card">
-      <div class="empty-state">No badge classes yet. Create an issuer first, then create a badge class.</div>
-    </div>
+    <!-- Live: card grid -->
+    <template v-else>
+      <div class="card-grid">
+        <div class="card" v-for="bc in badgeClasses" :key="bc.id">
+          <div class="card-media">
+            <img :src="bc.imageUrl" class="badge-img" style="width: 64px; height: 64px;" />
+            <div class="card-body">
+              <h3>{{ bc.name }}</h3>
+              <div class="card-meta">by {{ bc.issuer.name }}</div>
+              <p style="font-size: 14px; margin-top: 6px; color: var(--text);">{{ bc.description }}</p>
+              <div style="margin-top: 8px;">
+                <span class="tag" v-for="tag in bc.tags" :key="tag">{{ tag }}</span>
+              </div>
+              <div class="card-meta mt-md">
+                {{ bc._count?.assertions || 0 }} issued
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <router-link :to="`/badge-classes/${bc.id}`" class="btn btn-outline btn-sm">View</router-link>
+            <router-link :to="{ path: '/issue', query: { badgeClassId: bc.id } }" class="btn btn-primary btn-sm">Issue</router-link>
+            <button class="btn btn-danger btn-sm" @click="handleDelete(bc.id)">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="badgeClasses.length === 0 && !showForm" class="card">
+        <div class="empty-state">No badge classes yet. Create an issuer first, then create a badge class.</div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -86,6 +114,7 @@ import { getIssuers, getBadgeClasses, createBadgeClass, deleteBadgeClass, upload
 
 const badgeClasses = ref<any[]>([]);
 const issuers = ref<any[]>([]);
+const loading = ref(true);
 const showForm = ref(false);
 const saving = ref(false);
 const error = ref("");
@@ -93,9 +122,13 @@ const tagsInput = ref("");
 const form = ref({ issuerId: "", name: "", description: "", imageUrl: "", criteriaNarrative: "", criteriaUrl: "" });
 
 async function load() {
-  const [bc, iss] = await Promise.all([getBadgeClasses(), getIssuers()]);
-  badgeClasses.value = bc.data;
-  issuers.value = iss.data;
+  try {
+    const [bc, iss] = await Promise.all([getBadgeClasses(), getIssuers()]);
+    badgeClasses.value = bc.data;
+    issuers.value = iss.data;
+  } finally {
+    loading.value = false;
+  }
 }
 
 onMounted(load);
