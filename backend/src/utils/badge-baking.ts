@@ -1,3 +1,4 @@
+// @ts-expect-error no type declarations for pngjs
 import { PNG } from "pngjs";
 import fs from "fs";
 
@@ -14,7 +15,7 @@ export function bakePng(
     const data = fs.readFileSync(imagePath);
     const png = new PNG();
 
-    png.parse(data, (err) => {
+    png.parse(data, (err: Error | null) => {
       if (err) return reject(err);
 
       // Build the iTXt chunk manually

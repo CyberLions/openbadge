@@ -44,7 +44,7 @@ export function invalidateCache(prefix?: string) {
   }
 }
 
-async function cachedGet<T = unknown>(
+async function cachedGet<T = any>(
   url: string,
   params?: Record<string, string>,
   ttl = DEFAULT_TTL,
