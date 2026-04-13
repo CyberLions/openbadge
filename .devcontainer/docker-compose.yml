@@ -1,4 +1,16 @@
 services:
+  app:
+    image: mcr.microsoft.com/devcontainers/typescript-node:22-bookworm
+    volumes:
+      - ..:/workspaces/openbadge:cached
+    command: sleep infinity
+    network_mode: service:db
+    depends_on:
+      db:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+
   db:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -6,8 +18,6 @@ services:
       POSTGRES_USER: openbadge
       POSTGRES_PASSWORD: openbadge_dev
       POSTGRES_DB: openbadge
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -19,9 +29,7 @@ services:
   mailhog:
     image: mailhog/mailhog:latest
     restart: unless-stopped
-    ports:
-      - "1025:1025"
-      - "8025:8025"
+    network_mode: service:db
 
 volumes:
   pgdata:

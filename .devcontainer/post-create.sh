@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "==> Installing backend dependencies..."
-cd /workspaces/openbadge/backend
-npm install
+echo "==> Installing dependencies..."
+cd /workspaces/openbadge
+pnpm install
 
 echo "==> Running database migrations..."
-npx prisma migrate deploy
-npx prisma generate
+pnpm --filter backend exec prisma migrate deploy
+pnpm --filter backend exec prisma generate
 
 echo "==> Generating signing keys..."
+cd /workspaces/openbadge/backend
 node -e "
 const { generateKeyPairSync } = require('crypto');
 const fs = require('fs');
@@ -26,8 +27,4 @@ if (!fs.existsSync(path.join(keyDir, 'private.pem'))) {
 }
 "
 
-echo "==> Installing frontend dependencies..."
-cd /workspaces/openbadge/frontend
-npm install
-
-echo "==> Setup complete! Run 'npm run dev' in both backend/ and frontend/ directories."
+echo "==> Setup complete! Run 'pnpm dev' from the root to start both servers."

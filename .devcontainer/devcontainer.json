@@ -1,18 +1,17 @@
 {
   "name": "OpenBadge Platform",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:22-bookworm",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
   "workspaceFolder": "/workspaces/openbadge",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/openbadge,type=bind,consistency=cached",
-  "initializeCommand": "cd ${localWorkspaceFolder} && docker compose up -d",
   "postCreateCommand": "bash .devcontainer/post-create.sh",
-  "forwardPorts": [3000, 5173, 5432, 8025],
+  "forwardPorts": [3000, 5173, 5432, 1025, 8025],
   "portsAttributes": {
     "3000": { "label": "Backend API", "onAutoForward": "notify" },
     "5173": { "label": "Vue Frontend", "onAutoForward": "openBrowser" },
     "5432": { "label": "PostgreSQL", "onAutoForward": "silent" },
+    "1025": { "label": "MailHog SMTP", "onAutoForward": "silent" },
     "8025": { "label": "MailHog UI", "onAutoForward": "notify" }
   },
-  "runArgs": ["--network=host"],
   "containerEnv": {
     "DATABASE_URL": "postgresql://openbadge:openbadge_dev@localhost:5432/openbadge",
     "SMTP_HOST": "localhost",
@@ -36,5 +35,6 @@
         "editor.formatOnSave": true
       }
     }
-  }
+  },
+  "shutdownAction": "stopCompose"
 }
