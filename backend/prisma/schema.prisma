@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Issuer {
+  id          String       @id @default(uuid())
+  name        String
+  url         String
+  email       String
+  description String?
+  imageUrl    String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  badgeClasses BadgeClass[]
+  signingKeys  SigningKey[]
+}
+
+model SigningKey {
+  id            String   @id @default(uuid())
+  issuerId      String
+  issuer        Issuer   @relation(fields: [issuerId], references: [id], onDelete: Cascade)
+  publicKeyPem  String
+  privateKeyPem String
+  algorithm     String   @default("EdDSA")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  @@index([issuerId])
+}
+
+model BadgeClass {
+  id          String      @id @default(uuid())
+  issuerId    String
+  issuer      Issuer      @relation(fields: [issuerId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  imageUrl    String
+  criteriaUrl String?
+  criteriaNarrative String?
+  tags        String[]    @default([])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  assertions  Assertion[]
+
+  @@index([issuerId])
+}
+
+model Assertion {
+  id              String    @id @default(uuid())
+  badgeClassId    String
+  badgeClass      BadgeClass @relation(fields: [badgeClassId], references: [id], onDelete: Cascade)
+  recipientEmail  String
+  recipientName   String?
+  recipientHashed Boolean   @default(true)
+  salt            String
+  issuedOn        DateTime  @default(now())
+  expires         DateTime?
+  revoked         Boolean   @default(false)
+  revokedReason   String?
+  evidenceUrl     String?
+  evidenceNarrative String?
+  jws             String?
+  emailSent       Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([badgeClassId])
+  @@index([recipientEmail])
+}
