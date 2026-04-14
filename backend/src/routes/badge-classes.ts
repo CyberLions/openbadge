@@ -10,7 +10,7 @@ const CreateBadgeClassSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
   imageUrl: z.string().min(1),
-  criteriaUrl: z.string().url().optional(),
+  criteriaUrl: z.union([z.string().url(), z.literal("")]).optional().transform(v => v || undefined),
   criteriaNarrative: z.string().optional(),
   tags: z.array(z.string()).optional(),
 });

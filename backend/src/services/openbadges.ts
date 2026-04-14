@@ -70,11 +70,21 @@ export function buildAssertionJsonLd(
       salt: assertion.recipientHashed ? assertion.salt : undefined,
     },
     badge: `${APP_URL()}/ob/badge-classes/${assertion.badgeClassId}`,
+    image: {
+      id: `${APP_URL()}/verify/${assertion.id}/baked-image`,
+    },
     verification: assertion.jws
       ? { type: "signed", creator: `${APP_URL()}/ob/issuers/${assertion.badgeClass.issuerId}/keys` }
       : { type: "hosted" },
     issuedOn: assertion.issuedOn.toISOString(),
   };
+  if (assertion.recipientName) {
+    a["extensions:recipientProfile"] = {
+      "@context": "https://openbadgespec.org/extensions/recipientProfile/context.json",
+      type: ["Extension", "extensions:RecipientProfile"],
+      name: assertion.recipientName,
+    };
+  }
   if (assertion.expires) a.expires = assertion.expires.toISOString();
   if (assertion.revoked) {
     a.revoked = true;
