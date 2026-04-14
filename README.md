@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="openbadge_platform_icon.svg" alt="OpenBadge" width="120" />
+  <img src="logos/openbadge_platform_icon.svg" alt="OpenBadge" width="120" />
 </p>
 
 <h1 align="center">OpenBadge Platform</h1>

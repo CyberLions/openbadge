@@ -26,8 +26,9 @@ const PORT = process.env.PORT || 3000;
 
 // Security headers
 app.use(helmet({
-  contentSecurityPolicy: false, // CSP managed by frontend framework
-  crossOriginEmbedderPolicy: false, // Allow embedding badge images
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  frameguard: false, // Allow embedding in iframes (e.g. Rancher, portals)
 }));
 
 app.use(
