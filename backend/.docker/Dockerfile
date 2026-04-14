@@ -8,12 +8,13 @@ COPY backend/package.json backend/package.json
 # Dummy frontend package.json so pnpm workspace resolves
 COPY frontend/package.json frontend/package.json
 
-RUN pnpm install --frozen-lockfile
+ENV PRISMA_ENGINES_MIRROR=https://binaries.prisma.sh
+RUN PRISMA_SKIP_POSTINSTALL_GENERATE=1 pnpm install --frozen-lockfile
 
 # Copy backend source and prisma schema
 COPY backend/ backend/
 
-# Generate Prisma client and build TypeScript
+# Generate Prisma client (downloads the correct native engine)
 RUN cd backend && pnpm exec prisma generate && pnpm build
 
 # --- Production stage ---
@@ -25,7 +26,7 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY backend/package.json backend/package.json
 COPY frontend/package.json frontend/package.json
 
-RUN pnpm install --frozen-lockfile --prod
+RUN PRISMA_SKIP_POSTINSTALL_GENERATE=1 pnpm install --frozen-lockfile --prod
 
 COPY --from=base /app/backend/dist backend/dist
 COPY --from=base /app/backend/prisma backend/prisma
