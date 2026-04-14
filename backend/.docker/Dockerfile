@@ -14,7 +14,7 @@ RUN pnpm install --frozen-lockfile
 COPY backend/ backend/
 
 # Generate Prisma client and build TypeScript
-RUN cd backend && npx prisma generate && pnpm build
+RUN cd backend && pnpm exec prisma generate && pnpm build
 
 # --- Production stage ---
 FROM node:22-alpine AS production
@@ -33,4 +33,4 @@ COPY --from=base /app/node_modules/.pnpm/@prisma+client*/  node_modules/.pnpm/@p
 
 WORKDIR /app/backend
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/index.js"]
