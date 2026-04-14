@@ -121,8 +121,14 @@ onMounted(load);
 async function handleImageUpload(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0];
   if (!file) return;
-  const res = await uploadImage(file);
-  form.value.imageUrl = res.data.imageUrl;
+  try {
+    const res = await uploadImage(file);
+    form.value.imageUrl = res.data.imageUrl;
+  } catch (err: any) {
+    error.value = err.response?.status === 413
+      ? "Image too large. Maximum upload size is 5 MB."
+      : err.response?.data?.error || "Image upload failed";
+  }
 }
 
 async function handleCreate() {
