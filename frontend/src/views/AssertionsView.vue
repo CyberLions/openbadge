@@ -57,6 +57,65 @@
       <div v-else class="card">
         <div class="empty-state">No badges issued yet.</div>
       </div>
+
+      <!-- Invites section -->
+      <hr class="section-divider" style="margin: 32px 0;" />
+      <h2>Badge Invites</h2>
+
+      <div v-if="invites.length" class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Badge</th>
+              <th>Recipient</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Expires</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="inv in invites" :key="inv.id">
+              <td>{{ inv.badgeClass?.name || '—' }}</td>
+              <td>
+                <span v-if="inv.recipientEmail">{{ inv.recipientEmail }}</span>
+                <span v-else style="color:var(--text-muted);">No email</span>
+                <span v-if="inv.recipientName" style="color:var(--text-muted);font-size:12px;"> ({{ inv.recipientName }})</span>
+              </td>
+              <td>
+                <span v-if="inv.status === 'pending'" class="badge-valid">Pending</span>
+                <span v-else-if="inv.status === 'claimed'" class="invite-badge-claimed">Claimed</span>
+                <span v-else class="badge-revoked">Expired</span>
+              </td>
+              <td style="font-size:13px;color:var(--text-muted);">{{ formatDate(inv.createdAt) }}</td>
+              <td style="font-size:13px;color:var(--text-muted);">{{ formatDate(inv.expiresAt) }}</td>
+              <td>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button
+                    v-if="inv.status === 'pending'"
+                    class="btn btn-sm btn-outline"
+                    @click="copyInviteLink(inv.token)"
+                  >{{ copiedToken === inv.token ? 'Copied!' : 'Copy Link' }}</button>
+                  <router-link
+                    v-if="inv.status === 'claimed' && inv.assertionId"
+                    :to="`/badges/${inv.assertionId}`"
+                    class="btn btn-sm btn-outline"
+                  >View Badge</router-link>
+                  <button
+                    v-if="inv.status === 'pending'"
+                    class="btn btn-sm btn-danger"
+                    @click="handleCancelInvite(inv.id)"
+                  >Cancel</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-else class="card">
+        <div class="empty-state">No invites sent yet. <router-link to="/issue">Create one</router-link></div>
+      </div>
     </template>
 
     <!-- Revoke modal -->
@@ -83,24 +142,51 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { getAssertions, revokeAssertion, resendEmail } from "../services/api";
+import { getAssertions, revokeAssertion, resendEmail, getInvites, cancelInvite } from "../services/api";
 
 const loading = ref(true);
 const assertions = ref<any[]>([]);
+const invites = ref<any[]>([]);
 const resending = ref<string | null>(null);
 const revokeTarget = ref<string | null>(null);
 const revokeReason = ref("");
 const revoking = ref(false);
+const copiedToken = ref<string | null>(null);
 
 async function load() {
   try {
-    assertions.value = (await getAssertions()).data;
+    const [assertionsRes, invitesRes] = await Promise.all([
+      getAssertions(),
+      getInvites(),
+    ]);
+    assertions.value = assertionsRes.data;
+    invites.value = invitesRes.data;
   } finally {
     loading.value = false;
   }
 }
 
 onMounted(load);
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function copyInviteLink(token: string) {
+  const url = `${window.location.origin}/invite/${token}`;
+  navigator.clipboard.writeText(url);
+  copiedToken.value = token;
+  setTimeout(() => { copiedToken.value = null; }, 2000);
+}
+
+async function handleCancelInvite(id: string) {
+  try {
+    await cancelInvite(id);
+    await load();
+  } catch {
+    alert("Failed to cancel invite");
+  }
+}
 
 async function handleResend(id: string) {
   resending.value = id;
@@ -155,5 +241,21 @@ async function confirmRevoke() {
 .modal-card h3 {
   margin: 0 0 4px;
   font-size: 16px;
+}
+.invite-badge-claimed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--gold);
+  font-weight: 600;
+  font-size: 13px;
+}
+.invite-badge-claimed::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 6px rgba(255, 195, 0, 0.5);
 }
 </style>
