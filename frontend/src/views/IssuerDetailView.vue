@@ -46,9 +46,13 @@
                 <span v-if="issuer.signingKeys?.length" class="badge-valid" style="margin-left: 8px;">Active</span>
               </span>
             </div>
+            <div class="detail-row">
+              <span class="label">OBv2 Profile</span>
+              <span><a :href="`/ob/issuers/${issuer.id}`" target="_blank">Issuer Profile</a></span>
+            </div>
             <div class="detail-row" style="border-bottom: none;">
-              <span class="label">OB 2.0 Profile</span>
-              <span><a :href="`/ob/issuers/${issuer.id}`" target="_blank">/ob/issuers/{{ issuer.id }}</a></span>
+              <span class="label">OBv3 Profile</span>
+              <span><a :href="`/ob3/issuers/${issuer.id}`" target="_blank">Profile (Multikey)</a></span>
             </div>
           </div>
         </div>

@@ -9,6 +9,7 @@ import { assertionRouter } from "./routes/assertions";
 import { verifyRouter } from "./routes/verify";
 import { uploadRouter } from "./routes/uploads";
 import { publicRouter } from "./routes/public";
+import { publicOb3Router } from "./routes/public-ob3";
 import { apiKeyRouter } from "./routes/api-keys";
 import { authRouter } from "./routes/auth";
 import { auditEventRouter } from "./routes/audit-events";
@@ -26,8 +27,15 @@ app.use(
 );
 app.use(express.json());
 
-// Serve uploaded files statically
-app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+// Serve uploaded files from database
+app.get("/uploads/:filename", async (req, res) => {
+  const { prisma } = await import("./utils/prisma");
+  const upload = await prisma.upload.findUnique({ where: { filename: req.params.filename } });
+  if (!upload) return res.status(404).send("Not found");
+  res.set("Content-Type", upload.mimeType);
+  res.set("Cache-Control", "public, max-age=31536000, immutable");
+  res.send(Buffer.from(upload.data));
+});
 
 // Swagger API docs (public, no auth)
 setupSwagger(app);
@@ -48,8 +56,9 @@ app.use("/api/assertions", requireAuth, assertionRouter);
 app.use("/api/uploads", requireAuth, uploadRouter);
 app.use("/api/audit-events", requireAuth, auditEventRouter);
 
-// Public routes (OB 2.0 JSON-LD endpoints + verification)
+// Public routes (OB 2.0 + OB 3.0 JSON-LD endpoints + verification)
 app.use("/ob", publicRouter);
+app.use("/ob3", publicOb3Router);
 app.use("/verify", verifyRouter);
 
 app.get("/api/health", (_req, res) => {

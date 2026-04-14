@@ -14,6 +14,7 @@
             <path d="M24 8l-14 8v16l14 8 14-8V16L24 8z" fill="rgba(255,195,0,0.08)" stroke="#ffc300" stroke-width="1.5"/>
             <circle cx="24" cy="24" r="8" fill="none" stroke="#5aa9e6" stroke-width="2"/>
             <circle cx="24" cy="24" r="3" fill="#ffc300"/>
+            <path d="M24 16v-4M24 32v4M16 24h-4M32 24h4" stroke="#5aa9e6" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
           <h1>OpenBadge</h1>
           <p>Sign in to manage badges and credentials.</p>
@@ -92,7 +93,7 @@
               <div class="sidebar-user-name">{{ user.name || user.email || user.sub }}</div>
               <button class="btn btn-outline btn-sm" style="width: 100%; margin-top: 6px;" @click="handleLogout">Logout</button>
             </div>
-            <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted); text-align: center;">OB 2.0 Compliant</div>
+            <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted); text-align: center;">OB 2.0 + 3.0 Compliant</div>
           </div>
         </aside>
         <main class="main-content">

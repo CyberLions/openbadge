@@ -58,6 +58,26 @@
         <div class="empty-state">No badges issued yet.</div>
       </div>
     </template>
+
+    <!-- Revoke modal -->
+    <Teleport to="body">
+      <div v-if="revokeTarget" class="modal-overlay" @click.self="revokeTarget = null">
+        <div class="modal-card">
+          <h3>Revoke Badge</h3>
+          <p class="text-muted" style="font-size: 13px; margin-bottom: 16px;">This action cannot be undone.</p>
+          <div class="form-group">
+            <label>Reason (optional)</label>
+            <textarea v-model="revokeReason" rows="3" placeholder="Why is this badge being revoked?"></textarea>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: flex-end;">
+            <button class="btn btn-outline btn-sm" @click="revokeTarget = null">Cancel</button>
+            <button class="btn btn-danger btn-sm" @click="confirmRevoke" :disabled="revoking">
+              {{ revoking ? 'Revoking...' : 'Revoke' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -68,6 +88,9 @@ import { getAssertions, revokeAssertion, resendEmail } from "../services/api";
 const loading = ref(true);
 const assertions = ref<any[]>([]);
 const resending = ref<string | null>(null);
+const revokeTarget = ref<string | null>(null);
+const revokeReason = ref("");
+const revoking = ref(false);
 
 async function load() {
   try {
@@ -91,10 +114,46 @@ async function handleResend(id: string) {
   }
 }
 
-async function handleRevoke(id: string) {
-  const reason = prompt("Reason for revocation (optional):");
-  if (reason === null) return;
-  await revokeAssertion(id, reason || undefined);
-  await load();
+function handleRevoke(id: string) {
+  revokeReason.value = "";
+  revokeTarget.value = id;
+}
+
+async function confirmRevoke() {
+  if (!revokeTarget.value) return;
+  revoking.value = true;
+  try {
+    await revokeAssertion(revokeTarget.value, revokeReason.value || undefined);
+    revokeTarget.value = null;
+    await load();
+  } finally {
+    revoking.value = false;
+  }
 }
 </script>
+
+<style scoped>
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+.modal-card h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+</style>

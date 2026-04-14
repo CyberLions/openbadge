@@ -31,6 +31,8 @@ interface BadgeEmailParams {
   issuerName: string;
   assertionId: string;
   description: string;
+  issuedOn: Date;
+  expires?: Date | null;
 }
 
 export async function sendBadgeEmail(params: BadgeEmailParams) {
@@ -72,7 +74,7 @@ export async function sendBadgeEmail(params: BadgeEmailParams) {
             </div>
             <div style="border-top: 1px solid #003566; padding-top: 20px;">
               <p style="color: #7b8fa8; font-size: 12px; margin: 0;">
-                This badge was issued using the Open Badges 2.0 standard and is cryptographically signed.
+                This badge was issued using the Open Badges standard (v2.0 + v3.0) and is cryptographically signed.
               </p>
             </div>
           </div>
@@ -90,11 +92,19 @@ export async function sendBadgeEmail(params: BadgeEmailParams) {
 
 function buildLinkedInUrl(params: BadgeEmailParams): string {
   const viewUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/badges/${params.assertionId}`;
+  const issued = params.issuedOn;
   const p = new URLSearchParams({
     startTask: "CERTIFICATION_NAME",
     name: params.badgeName,
+    organizationName: params.issuerName,
     certUrl: viewUrl,
-    certId: params.assertionId,
+    certId: params.badgeName,
+    issueYear: String(issued.getFullYear()),
+    issueMonth: String(issued.getMonth() + 1),
   });
+  if (params.expires) {
+    p.set("expirationYear", String(params.expires.getFullYear()));
+    p.set("expirationMonth", String(params.expires.getMonth() + 1));
+  }
   return `https://www.linkedin.com/profile/add?${p.toString()}`;
 }

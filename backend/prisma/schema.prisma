@@ -12,9 +12,10 @@ model Issuer {
   name        String
   url         String
   email       String
-  description String?
-  imageUrl    String?
-  createdAt   DateTime     @default(now())
+  description              String?
+  imageUrl                 String?
+  linkedInOrganizationName String?
+  createdAt                DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   badgeClasses BadgeClass[]
   signingKeys  SigningKey[]
@@ -71,6 +72,15 @@ model Assertion {
 
   @@index([badgeClassId])
   @@index([recipientEmail])
+}
+
+model Upload {
+  id          String   @id @default(uuid())
+  filename    String   @unique
+  mimeType    String
+  size        Int
+  data        Bytes
+  createdAt   DateTime @default(now())
 }
 
 model ApiKey {

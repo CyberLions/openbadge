@@ -536,6 +536,44 @@ const spec = {
       },
     },
 
+    // ── OB 3.0 JSON-LD (public) ──
+    "/ob3/issuers/{id}": {
+      get: {
+        tags: ["OpenBadges 3.0"],
+        summary: "Issuer Profile (OBv3, with Multikey verification method)",
+        security: [],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
+        responses: { "200": { description: "OBv3 Profile JSON-LD", content: { "application/ld+json": { schema: { type: "object" } } } } },
+      },
+    },
+    "/ob3/achievements/{id}": {
+      get: {
+        tags: ["OpenBadges 3.0"],
+        summary: "Achievement (OBv3, replaces BadgeClass)",
+        security: [],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
+        responses: { "200": { description: "OBv3 Achievement JSON-LD" } },
+      },
+    },
+    "/ob3/credentials/{id}": {
+      get: {
+        tags: ["OpenBadges 3.0"],
+        summary: "AchievementCredential (OBv3, signed with DataIntegrityProof)",
+        security: [],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
+        responses: { "200": { description: "OBv3 OpenBadgeCredential (VerifiableCredential)" } },
+      },
+    },
+    "/ob3/issuers/{id}/revocations": {
+      get: {
+        tags: ["OpenBadges 3.0"],
+        summary: "1EdTech Revocation List",
+        security: [],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
+        responses: { "200": { description: "1EdTechRevocationList JSON-LD" } },
+      },
+    },
+
     // ── Health ──
     "/api/health": {
       get: {
@@ -556,6 +594,7 @@ const spec = {
     { name: "Auth", description: "OIDC authentication" },
     { name: "Verification", description: "Public badge verification" },
     { name: "OpenBadges 2.0", description: "OB 2.0 JSON-LD endpoints (public)" },
+    { name: "OpenBadges 3.0", description: "OB 3.0 Verifiable Credentials endpoints (public)" },
     { name: "Health", description: "Server health" },
   ],
 };

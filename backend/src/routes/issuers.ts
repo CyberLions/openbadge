@@ -3,6 +3,7 @@ import { generateKeyPairSync } from "crypto";
 import { prisma } from "../utils/prisma";
 import { z } from "zod";
 import { audit } from "../services/audit";
+import { deleteUploadByUrl } from "../services/uploads";
 
 export const issuerRouter = Router();
 
@@ -12,6 +13,7 @@ const CreateIssuerSchema = z.object({
   email: z.string().email(),
   description: z.string().optional(),
   imageUrl: z.string().optional(),
+  linkedInOrganizationName: z.string().optional(),
 });
 
 // List all issuers
@@ -63,6 +65,14 @@ issuerRouter.put("/:id", async (req, res) => {
   const parsed = CreateIssuerSchema.partial().safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
+  // Clean up old image if being replaced
+  if (parsed.data.imageUrl) {
+    const old = await prisma.issuer.findUnique({ where: { id: req.params.id }, select: { imageUrl: true } });
+    if (old?.imageUrl && old.imageUrl !== parsed.data.imageUrl) {
+      await deleteUploadByUrl(old.imageUrl);
+    }
+  }
+
   const issuer = await prisma.issuer.update({
     where: { id: req.params.id },
     data: parsed.data,
@@ -73,7 +83,19 @@ issuerRouter.put("/:id", async (req, res) => {
 
 // Delete issuer
 issuerRouter.delete("/:id", async (req, res) => {
+  // Collect all uploads to clean up (issuer image + all badge class images)
+  const issuer = await prisma.issuer.findUnique({
+    where: { id: req.params.id },
+    select: { imageUrl: true, badgeClasses: { select: { imageUrl: true } } },
+  });
   await prisma.issuer.delete({ where: { id: req.params.id } });
+  // Clean up uploads after delete
+  if (issuer) {
+    await deleteUploadByUrl(issuer.imageUrl);
+    for (const bc of issuer.badgeClasses) {
+      await deleteUploadByUrl(bc.imageUrl);
+    }
+  }
   audit({ action: "issuer.deleted", targetType: "issuer", targetId: req.params.id, req });
   res.status(204).end();
 });

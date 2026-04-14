@@ -33,6 +33,10 @@
           <textarea v-model="form.description" placeholder="About this issuer..."></textarea>
         </div>
         <div class="form-group">
+          <label>LinkedIn Organization Name</label>
+          <input v-model="form.linkedInOrganizationName" placeholder="Company name as it appears on LinkedIn" />
+        </div>
+        <div class="form-group">
           <label>Logo Image</label>
           <input type="file" accept="image/*" @change="handleImageUpload" />
           <img v-if="form.imageUrl" :src="form.imageUrl" class="badge-image-preview" style="margin-top: 8px;" />
@@ -73,7 +77,7 @@
             <div class="card-body">
               <h3>{{ issuer.name }}</h3>
               <div class="card-meta">{{ issuer.email }}</div>
-              <p v-if="issuer.description" style="font-size: 14px; margin-top: 6px; color: var(--text);">{{ issuer.description }}</p>
+              <p v-if="issuer.description" class="card-description">{{ issuer.description }}</p>
               <div class="card-meta mt-md">
                 {{ issuer._count?.badgeClasses || 0 }} badge classes
               </div>
@@ -102,7 +106,7 @@ const loading = ref(true);
 const showForm = ref(false);
 const saving = ref(false);
 const error = ref("");
-const form = ref({ name: "", url: "", email: "", description: "", imageUrl: "" });
+const form = ref({ name: "", url: "", email: "", description: "", imageUrl: "", linkedInOrganizationName: "" });
 
 async function load() {
   try {
@@ -126,7 +130,7 @@ async function handleCreate() {
   error.value = "";
   try {
     await createIssuer(form.value);
-    form.value = { name: "", url: "", email: "", description: "", imageUrl: "" };
+    form.value = { name: "", url: "", email: "", description: "", imageUrl: "", linkedInOrganizationName: "" };
     showForm.value = false;
     await load();
   } catch (e: any) {
@@ -144,3 +148,15 @@ async function handleDelete(id: string) {
   await load();
 }
 </script>
+
+<style scoped>
+.card-description {
+  font-size: 13px;
+  margin-top: 6px;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>

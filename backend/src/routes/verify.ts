@@ -1,8 +1,11 @@
 import { Router } from "express";
+import path from "path";
+import fs from "fs";
 import { prisma } from "../utils/prisma";
 import { verifyJws } from "../utils/signing";
 import { buildAssertionJsonLd } from "../services/openbadges";
 import { hashIdentity } from "../utils/hashing";
+import { bakePng } from "../utils/badge-baking";
 
 export const verifyRouter = Router();
 
@@ -63,10 +66,14 @@ verifyRouter.get("/:id", async (req, res) => {
       name: assertion.badgeClass.name,
       description: assertion.badgeClass.description,
       image: `${process.env.APP_URL}${assertion.badgeClass.imageUrl}`,
+      criteriaUrl: assertion.badgeClass.criteriaUrl,
+      criteriaNarrative: assertion.badgeClass.criteriaNarrative,
+      tags: assertion.badgeClass.tags,
     },
     issuer: {
       name: assertion.badgeClass.issuer.name,
       url: assertion.badgeClass.issuer.url,
+      linkedInOrganizationName: assertion.badgeClass.issuer.linkedInOrganizationName,
     },
   });
 });
@@ -94,22 +101,18 @@ verifyRouter.get("/:id/baked-image", async (req, res) => {
   });
   if (!assertion) return res.status(404).json({ error: "Assertion not found" });
 
-  const imagePath = require("path").join(
-    __dirname,
-    "..",
-    "..",
-    assertion.badgeClass.imageUrl
-  );
+  // imageUrl is like "/uploads/abc.png" — resolve relative to the backend root
+  const imagePath = path.join(__dirname, "..", "..", assertion.badgeClass.imageUrl);
 
-  // Check if the image exists and is a PNG
-  const fs = require("fs");
-  if (!fs.existsSync(imagePath) || !imagePath.endsWith(".png")) {
-    return res
-      .status(400)
-      .json({ error: "Badge image not found or not a PNG" });
+  if (!fs.existsSync(imagePath)) {
+    return res.status(400).json({ error: "Badge image not found" });
   }
 
-  const { bakePng } = require("../utils/badge-baking");
+  if (!imagePath.toLowerCase().endsWith(".png")) {
+    // For non-PNG images, just serve the original
+    return res.sendFile(path.resolve(imagePath));
+  }
+
   const assertionData = assertion.jws || `${process.env.APP_URL}/ob/assertions/${assertion.id}`;
 
   try {

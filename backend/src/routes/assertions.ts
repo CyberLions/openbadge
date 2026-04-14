@@ -105,6 +105,8 @@ assertionRouter.post("/", async (req, res) => {
         issuerName: badgeClass.issuer.name,
         assertionId: assertion.id,
         description: badgeClass.description,
+        issuedOn: assertion.issuedOn,
+        expires: assertion.expires,
       });
       await prisma.assertion.update({
         where: { id: assertion.id },
@@ -173,6 +175,8 @@ assertionRouter.post("/bulk", async (req, res) => {
           issuerName: badgeClass.issuer.name,
           assertionId: assertion.id,
           description: badgeClass.description,
+          issuedOn: assertion.issuedOn,
+          expires: assertion.expires,
         });
         await prisma.assertion.update({
           where: { id: assertion.id },
@@ -213,6 +217,8 @@ assertionRouter.post("/:id/resend-email", async (req, res) => {
       issuerName: assertion.badgeClass.issuer.name,
       assertionId: assertion.id,
       description: assertion.badgeClass.description,
+      issuedOn: assertion.issuedOn,
+      expires: assertion.expires,
     });
     await prisma.assertion.update({
       where: { id: assertion.id },

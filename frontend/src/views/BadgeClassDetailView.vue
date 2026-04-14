@@ -45,9 +45,13 @@
             <div v-if="badge.tags?.length" style="padding: 14px 0; border-bottom: 1px solid rgba(0, 53, 102, 0.2);">
               <span class="tag" v-for="tag in badge.tags" :key="tag">{{ tag }}</span>
             </div>
+            <div class="detail-row">
+              <span class="label">OBv2 JSON-LD</span>
+              <span><a :href="`/ob/badge-classes/${badge.id}`" target="_blank">BadgeClass</a></span>
+            </div>
             <div class="detail-row" style="border-bottom: none;">
-              <span class="label">OB 2.0 JSON-LD</span>
-              <span><a :href="`/ob/badge-classes/${badge.id}`" target="_blank">/ob/badge-classes/{{ badge.id }}</a></span>
+              <span class="label">OBv3 JSON-LD</span>
+              <span><a :href="`/ob3/achievements/${badge.id}`" target="_blank">Achievement</a></span>
             </div>
             <div class="actions">
               <router-link :to="{ path: '/issue', query: { badgeClassId: badge.id } }" class="btn btn-gold">Issue This Badge</router-link>
