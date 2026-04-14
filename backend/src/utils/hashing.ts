@@ -6,7 +6,7 @@ export function generateSalt(): string {
 
 export function hashIdentity(email: string, salt: string): string {
   const hash = createHash("sha256")
-    .update(salt + email.toLowerCase())
+    .update(email.toLowerCase() + salt)
     .digest("hex");
   return `sha256$${hash}`;
 }

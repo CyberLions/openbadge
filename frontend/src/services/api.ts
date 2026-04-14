@@ -173,8 +173,9 @@ export const authLogout = () => axios.post("/auth/logout", {}, { withCredentials
 // ---------------------------------------------------------------------------
 // Verification (public)
 // ---------------------------------------------------------------------------
-export const verifyBadge = async (id: string) => {
-  const key = `/verify/${id}`;
+export const verifyBadge = async (id: string, params?: Record<string, string>) => {
+  const qp = params ? `?${new URLSearchParams(params)}` : "";
+  const key = `/verify/${id}${qp}`;
   const hit = getCached(key);
   if (hit !== null) return { data: hit };
   const res = await axios.get(key);

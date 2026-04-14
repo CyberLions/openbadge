@@ -57,8 +57,18 @@ verifyRouter.get("/:id", async (req, res) => {
     }
   }
 
+  // Check recipient identity if query param provided
+  const identityEmail = req.query["identity_email"] as string | undefined;
+  let recipientVerified: boolean | undefined;
+  if (identityEmail) {
+    const expected = hashIdentity(assertion.recipientEmail, assertion.salt);
+    const provided = hashIdentity(identityEmail, assertion.salt);
+    recipientVerified = expected === provided;
+  }
+
   res.json({
     valid: true,
+    recipientVerified,
     assertion: buildAssertionJsonLd(assertion),
     badgeClass: {
       name: assertion.badgeClass.name,

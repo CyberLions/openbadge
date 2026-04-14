@@ -35,9 +35,19 @@
           <span v-else>{{ verification.issuer.name }}</span>
         </div>
 
-        <div class="bp-pill" :class="verification.valid ? 'bp-pill--ok' : 'bp-pill--bad'">
-          <span class="bp-pill-dot"></span>
-          {{ verification.valid ? 'Verified credential' : 'Verification failed' }}
+        <div class="bp-pills">
+          <div class="bp-pill" :class="verification.valid ? 'bp-pill--ok' : 'bp-pill--bad'">
+            <span class="bp-pill-dot"></span>
+            {{ verification.valid ? 'Verified credential' : 'Verification failed' }}
+          </div>
+          <div v-if="verification.recipientVerified === true" class="bp-pill bp-pill--ok">
+            <span class="bp-pill-dot"></span>
+            Recipient confirmed
+          </div>
+          <div v-else-if="verification.recipientVerified === false" class="bp-pill bp-pill--bad">
+            <span class="bp-pill-dot"></span>
+            Recipient does not match
+          </div>
         </div>
         <p v-if="!verification.valid" class="bp-fail-reason">{{ verification.reason }}</p>
       </section>
@@ -48,6 +58,10 @@
           <div v-if="recipientName" class="bp-row">
             <span class="bp-label">Recipient</span>
             <span class="bp-value">{{ recipientName }}</span>
+          </div>
+          <div v-if="identityEmail" class="bp-row">
+            <span class="bp-label">Email</span>
+            <span class="bp-value">{{ identityEmail }}</span>
           </div>
           <div v-if="verification.assertion?.issuedOn" class="bp-row">
             <span class="bp-label">Issued</span>
@@ -132,6 +146,7 @@ const route = useRoute();
 const loading = ref(true);
 const verification = ref<any>(null);
 const assertionId = computed(() => route.params.id as string);
+const identityEmail = computed(() => (route.query.identity_email as string) || null);
 
 const wrapRef = ref<HTMLElement | null>(null);
 const tiltStyle = ref<Record<string, string>>({});
@@ -207,7 +222,10 @@ const linkedInUrl = computed(() => {
 
 onMounted(async () => {
   try {
-    const res = await verifyBadge(assertionId.value);
+    const params: Record<string, string> = {};
+    const identityEmail = route.query.identity_email as string | undefined;
+    if (identityEmail) params.identity_email = identityEmail;
+    const res = await verifyBadge(assertionId.value, Object.keys(params).length ? params : undefined);
     verification.value = res.data;
   } catch {
     verification.value = null;
@@ -345,11 +363,17 @@ onUnmounted(() => {
 .bp-issuer-line a:hover { text-decoration: underline; }
 
 /* Status pill */
+.bp-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
 .bp-pill {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  margin-top: 18px;
   padding: 6px 16px;
   border-radius: 999px;
   font-size: 12px;

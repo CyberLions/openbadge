@@ -36,7 +36,8 @@ interface BadgeEmailParams {
 }
 
 export async function sendBadgeEmail(params: BadgeEmailParams) {
-  const viewUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/badges/${params.assertionId}`;
+  const email = encodeURIComponent(params.to);
+  const viewUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/badges/${params.assertionId}?identity_email=${email}`;
   const linkedInUrl = buildLinkedInUrl(params);
   const from = process.env.SMTP_FROM || `"OpenBadge Platform" <badges@openbadge.local>`;
 
@@ -91,7 +92,8 @@ export async function sendBadgeEmail(params: BadgeEmailParams) {
 }
 
 function buildLinkedInUrl(params: BadgeEmailParams): string {
-  const viewUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/badges/${params.assertionId}`;
+  const email = encodeURIComponent(params.to);
+  const viewUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/badges/${params.assertionId}?identity_email=${email}`;
   const issued = params.issuedOn;
   const p = new URLSearchParams({
     startTask: "CERTIFICATION_NAME",
