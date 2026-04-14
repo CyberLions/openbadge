@@ -19,12 +19,14 @@ FROM node:22-alpine
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
+# Install ALL deps (need prisma CLI from devDependencies for generate + migrate)
 COPY backend/package.json ./
 COPY pnpm-lock.yaml ./
-RUN PRISMA_SKIP_POSTINSTALL_GENERATE=1 pnpm install --prod --no-frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
+# Copy backend source and generate prisma client using the pinned version
 COPY backend/ .
-RUN npx prisma generate
+RUN pnpm exec prisma generate
 
 # Bake built frontend into the image
 COPY --from=frontend-build /build/frontend/dist /app/static
@@ -32,4 +34,4 @@ COPY --from=frontend-build /build/frontend/dist /app/static
 ENV FRONTEND_DIST=/app/static
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && npx tsx src/index.ts"]
+CMD ["sh", "-c", "pnpm exec prisma migrate deploy && pnpm exec tsx src/index.ts"]
