@@ -1,6 +1,12 @@
-# OpenBadge Platform
+<p align="center">
+  <img src="openbadge_platform_icon.svg" alt="OpenBadge" width="120" />
+</p>
 
+<h1 align="center">OpenBadge Platform</h1>
+
+<p align="center">
 An Open Badges 2.0 + 3.0 compliant credential platform with Ed25519 digital signatures, multiple authentication modes, badge invites, offline verification, static-site export, and a Vue.js management UI.
+</p>
 
 ## Features
 

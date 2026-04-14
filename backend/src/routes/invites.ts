@@ -5,7 +5,7 @@ import { prisma } from "../utils/prisma";
 import { generateSalt } from "../utils/hashing";
 import { signAssertion } from "../utils/signing";
 import { buildAssertionJsonLd } from "../services/openbadges";
-import { sendBadgeEmail } from "../services/email";
+import { sendBadgeEmail, sendInviteEmail } from "../services/email";
 import { audit } from "../services/audit";
 
 export const inviteRouter = Router();
@@ -301,59 +301,3 @@ publicInviteRouter.post("/:token/claim", async (req: any, res) => {
   });
 });
 
-// ── Email helper ──
-
-async function sendInviteEmail(params: {
-  to: string;
-  recipientName?: string;
-  badgeName: string;
-  issuerName: string;
-  inviteUrl: string;
-  expiresAt: Date;
-}) {
-  // Reuse the existing email infrastructure
-  const nodemailer = await import("nodemailer");
-  const host = process.env.SMTP_HOST || "localhost";
-  const port = Number(process.env.SMTP_PORT) || 1025;
-  const secure = process.env.SMTP_SECURE === "true";
-  const from = process.env.SMTP_FROM || "badges@openbadge.local";
-  const auth =
-    process.env.SMTP_USER && process.env.SMTP_PASS
-      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-      : undefined;
-
-  const transporter = nodemailer.createTransport({ host, port, secure, auth });
-
-  const expiresDate = params.expiresAt.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-
-  const html = `
-    <div style="max-width:560px;margin:0 auto;font-family:system-ui,sans-serif;color:#333;">
-      <div style="background:linear-gradient(135deg,#001d3d,#003566);padding:32px 24px;text-align:center;border-radius:12px 12px 0 0;">
-        <h1 style="color:#ffc300;margin:0;font-size:22px;">You've Been Invited!</h1>
-      </div>
-      <div style="padding:24px;background:#f8f9fa;border:1px solid #e0e0e0;border-top:none;border-radius:0 0 12px 12px;">
-        <p>Hi${params.recipientName ? ` ${params.recipientName}` : ""},</p>
-        <p><strong>${params.issuerName}</strong> has invited you to claim the badge:</p>
-        <h2 style="color:#003566;margin:16px 0 8px;">${params.badgeName}</h2>
-        <p>Click the button below to review and claim your credential. You'll be able to confirm or update your email and name before the badge is issued.</p>
-        <div style="text-align:center;margin:24px 0;">
-          <a href="${params.inviteUrl}" style="display:inline-block;padding:12px 32px;background:linear-gradient(135deg,#ffc300,#e6b000);color:#001d3d;font-weight:700;text-decoration:none;border-radius:50px;font-size:14px;">
-            Claim Your Badge
-          </a>
-        </div>
-        <p style="font-size:13px;color:#666;">This invite expires on ${expiresDate}.</p>
-      </div>
-    </div>
-  `;
-
-  await transporter.sendMail({
-    from,
-    to: params.to,
-    subject: `You've been invited to claim: ${params.badgeName}`,
-    html,
-  });
-}
