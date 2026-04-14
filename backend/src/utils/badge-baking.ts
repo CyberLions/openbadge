@@ -1,6 +1,5 @@
 // @ts-expect-error no type declarations for pngjs
 import { PNG } from "pngjs";
-import fs from "fs";
 
 /**
  * Bake an Open Badges assertion into a PNG image by adding an iTXt chunk.
@@ -8,11 +7,11 @@ import fs from "fs";
  * a hosted URL or a JWS compact serialization string.
  */
 export function bakePng(
-  imagePath: string,
+  imageData: Buffer,
   assertionData: string
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const data = fs.readFileSync(imagePath);
+    const data = imageData;
     const png = new PNG();
 
     png.parse(data, (err: Error | null) => {

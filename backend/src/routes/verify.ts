@@ -1,6 +1,4 @@
 import { Router } from "express";
-import path from "path";
-import fs from "fs";
 import { prisma } from "../utils/prisma";
 import { verifyJws } from "../utils/signing";
 import { buildAssertionJsonLd } from "../services/openbadges";
@@ -101,22 +99,20 @@ verifyRouter.get("/:id/baked-image", async (req, res) => {
   });
   if (!assertion) return res.status(404).json({ error: "Assertion not found" });
 
-  // imageUrl is like "/uploads/abc.png" — resolve relative to the backend root
-  const imagePath = path.join(__dirname, "..", "..", assertion.badgeClass.imageUrl);
+  const filename = assertion.badgeClass.imageUrl.replace(/^\/uploads\//, "");
+  const upload = await prisma.upload.findUnique({ where: { filename } });
+  if (!upload) return res.status(400).json({ error: "Badge image not found" });
 
-  if (!fs.existsSync(imagePath)) {
-    return res.status(400).json({ error: "Badge image not found" });
-  }
-
-  if (!imagePath.toLowerCase().endsWith(".png")) {
+  if (!filename.toLowerCase().endsWith(".png")) {
     // For non-PNG images, just serve the original
-    return res.sendFile(path.resolve(imagePath));
+    res.set("Content-Type", upload.mimeType);
+    return res.send(Buffer.from(upload.data));
   }
 
   const assertionData = assertion.jws || `${process.env.APP_URL}/ob/assertions/${assertion.id}`;
 
   try {
-    const bakedBuffer = await bakePng(imagePath, assertionData);
+    const bakedBuffer = await bakePng(Buffer.from(upload.data), assertionData);
     res.set({
       "Content-Type": "image/png",
       "Content-Disposition": `attachment; filename="badge-${assertion.id}.png"`,
