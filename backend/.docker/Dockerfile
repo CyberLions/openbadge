@@ -2,15 +2,14 @@ FROM node:22-alpine
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
-COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./
-COPY backend/package.json backend/package.json
+COPY backend/package.json ./
+COPY pnpm-lock.yaml ./
 
-RUN PRISMA_SKIP_POSTINSTALL_GENERATE=1 pnpm install --frozen-lockfile --filter backend...
+RUN PRISMA_SKIP_POSTINSTALL_GENERATE=1 pnpm install --no-frozen-lockfile
 
-COPY backend/ backend/
-WORKDIR /app/backend
+COPY backend/ .
 
-RUN node node_modules/prisma/build/index.js generate
+RUN npx prisma generate
 
 EXPOSE 3000
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && npx tsx src/index.ts"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npx tsx src/index.ts"]
