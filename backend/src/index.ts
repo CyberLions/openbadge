@@ -56,6 +56,8 @@ app.get("/uploads/:filename", async (req, res) => {
   if (!upload) return res.status(404).send("Not found");
   res.set("Content-Type", upload.mimeType);
   res.set("Cache-Control", "public, max-age=31536000, immutable");
+  res.set("Cross-Origin-Resource-Policy", "cross-origin");
+  res.set("Access-Control-Allow-Origin", "*");
   res.send(Buffer.from(upload.data));
 });
 
