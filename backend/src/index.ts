@@ -28,7 +28,8 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
-  frameguard: false, // Allow embedding in iframes (e.g. Rancher, portals)
+  crossOriginResourcePolicy: false,
+  frameguard: false,
 }));
 
 app.use(
