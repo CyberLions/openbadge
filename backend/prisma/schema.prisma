@@ -47,6 +47,7 @@ model BadgeClass {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   assertions  Assertion[]
+  invites     BadgeInvite[]
 
   @@index([issuerId])
 }
@@ -94,6 +95,33 @@ model ApiKey {
   expiresAt   DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model BadgeInvite {
+  id             String     @id @default(uuid())
+  token          String     @unique
+  badgeClassId   String
+  badgeClass     BadgeClass @relation(fields: [badgeClassId], references: [id], onDelete: Cascade)
+  recipientEmail String?
+  recipientName  String?
+  status         String     @default("pending") // pending | claimed | expired
+  expiresAt      DateTime
+  assertionId    String?    // set when claimed and badge is issued
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([token])
+  @@index([badgeClassId])
+}
+
+model LocalUser {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model AuditEvent {

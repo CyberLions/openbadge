@@ -1,0 +1,41 @@
+<svg width="100%" viewBox="0 0 680 680" role="img" xmlns="http://www.w3.org/2000/svg">
+<title style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">OpenBadge Platform icon</title>
+<desc style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">A minimalistic modern icon featuring a shield with a verified checkmark, rendered in blue and gold</desc>
+
+<defs>
+<clipPath id="shieldClip">
+<path d="M340 80 L520 160 L520 360 Q520 520 340 600 Q160 520 160 360 L160 160 Z"/>
+</clipPath>
+</defs>
+
+<!-- Outer gold ring -->
+<circle cx="340" cy="340" r="300" fill="none" stroke="#D4A843" stroke-width="3" style="fill:none;stroke:rgb(212, 168, 67);color:rgb(255, 255, 255);stroke-width:3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<circle cx="340" cy="340" r="290" fill="none" stroke="#D4A843" stroke-width="0.5" opacity="0.4" style="fill:none;stroke:rgb(212, 168, 67);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.4;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- Shield body — deep blue -->
+<path d="M340 100 L510 175 L510 355 Q510 505 340 585 Q170 505 170 355 L170 175 Z" fill="#1B3A5C" style="fill:rgb(27, 58, 92);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- Shield inner bevel — slightly lighter -->
+<path d="M340 130 L485 195 L485 350 Q485 485 340 555 Q195 485 195 350 L195 195 Z" fill="#224872" style="fill:rgb(34, 72, 114);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- Subtle vertical axis line -->
+<line x1="340" y1="150" x2="340" y2="540" stroke="#2D5F8A" stroke-width="0.5" opacity="0.5" style="fill:rgb(0, 0, 0);stroke:rgb(45, 95, 138);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.5;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- Gold checkmark — thick, confident -->
+<polyline points="270,340 320,395 415,280" fill="none" stroke="#D4A843" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" style="fill:none;stroke:rgb(212, 168, 67);color:rgb(255, 255, 255);stroke-width:16px;stroke-linecap:round;stroke-linejoin:round;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- Gold accent line at shield top -->
+<path d="M340 130 L485 195" fill="none" stroke="#D4A843" stroke-width="1" opacity="0.3" style="fill:none;stroke:rgb(212, 168, 67);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.3;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<path d="M340 130 L195 195" fill="none" stroke="#D4A843" stroke-width="1" opacity="0.3" style="fill:none;stroke:rgb(212, 168, 67);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.3;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- Small decorative dots at cardinal points -->
+<circle cx="340" cy="100" r="4" fill="#D4A843" style="fill:rgb(212, 168, 67);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<circle cx="510" cy="175" r="3" fill="#D4A843" opacity="0.6" style="fill:rgb(212, 168, 67);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.6;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<circle cx="170" cy="175" r="3" fill="#D4A843" opacity="0.6" style="fill:rgb(212, 168, 67);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.6;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<circle cx="340" cy="585" r="4" fill="#D4A843" style="fill:rgb(212, 168, 67);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- Subtle outer decorative arcs -->
+<path d="M180 520 Q100 440 120 340" fill="none" stroke="#D4A843" stroke-width="0.5" opacity="0.3" style="fill:none;stroke:rgb(212, 168, 67);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.3;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<path d="M500 520 Q580 440 560 340" fill="none" stroke="#D4A843" stroke-width="0.5" opacity="0.3" style="fill:none;stroke:rgb(212, 168, 67);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.3;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+</svg>

@@ -2,6 +2,8 @@ import { config } from "dotenv";
 config({ override: true });
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import path from "path";
 import { issuerRouter } from "./routes/issuers";
 import { badgeClassRouter } from "./routes/badge-classes";
@@ -13,11 +15,20 @@ import { publicOb3Router } from "./routes/public-ob3";
 import { apiKeyRouter } from "./routes/api-keys";
 import { authRouter } from "./routes/auth";
 import { auditEventRouter } from "./routes/audit-events";
+import { offlineVerifyRouter } from "./routes/offline-verify";
+import { staticExportRouter } from "./routes/static-export";
+import { inviteRouter, publicInviteRouter } from "./routes/invites";
 import { authenticate, requireAuth } from "./middleware/auth";
 import { setupSwagger } from "./swagger";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: false, // CSP managed by frontend framework
+  crossOriginEmbedderPolicy: false, // Allow embedding badge images
+}));
 
 app.use(
   cors({
@@ -25,7 +36,16 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
+
+// Rate limiting on auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // 20 attempts per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later" },
+});
 
 // Serve uploaded files from database
 app.get("/uploads/:filename", async (req, res) => {
@@ -41,6 +61,8 @@ app.get("/uploads/:filename", async (req, res) => {
 setupSwagger(app);
 
 // Auth routes (login/callback/logout — must be before requireAuth)
+app.use("/auth/login", authLimiter);
+app.use("/auth/register", authLimiter);
 app.use("/auth", authRouter);
 
 // Authenticate all /api requests (sets req.user or req.apiKey if valid)
@@ -55,11 +77,15 @@ app.use("/api/badge-classes", requireAuth, badgeClassRouter);
 app.use("/api/assertions", requireAuth, assertionRouter);
 app.use("/api/uploads", requireAuth, uploadRouter);
 app.use("/api/audit-events", requireAuth, auditEventRouter);
+app.use("/api/static-export", requireAuth, staticExportRouter);
+app.use("/api/invites", requireAuth, inviteRouter);
 
 // Public routes (OB 2.0 + OB 3.0 JSON-LD endpoints + verification)
 app.use("/ob", publicRouter);
 app.use("/ob3", publicOb3Router);
 app.use("/verify", verifyRouter);
+app.use("/offline-verify", offlineVerifyRouter);
+app.use("/invites", publicInviteRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });

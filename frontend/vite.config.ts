@@ -13,6 +13,8 @@ export default defineConfig({
       "/ob": "http://localhost:3000",
       "/verify": "http://localhost:3000",
       "/uploads": "http://localhost:3000",
+      "/offline-verify": "http://localhost:3000",
+      "/invites": "http://localhost:3000",
     },
   },
 });

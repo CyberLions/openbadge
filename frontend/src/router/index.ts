@@ -5,6 +5,12 @@ export const router = createRouter({
   routes: [
     {
       path: "/",
+      name: "landing",
+      meta: { public: true },
+      component: () => import("../views/LandingView.vue"),
+    },
+    {
+      path: "/dashboard",
       name: "dashboard",
       component: () => import("../views/DashboardView.vue"),
     },
@@ -48,12 +54,18 @@ export const router = createRouter({
       name: "activity-log",
       component: () => import("../views/ActivityLogView.vue"),
     },
-    // Public badge viewing page (no auth required)
+    // Public pages (no auth required)
     {
       path: "/badges/:id",
       name: "badge-view",
       meta: { public: true },
       component: () => import("../views/BadgeViewPublic.vue"),
+    },
+    {
+      path: "/invite/:token",
+      name: "invite-claim",
+      meta: { public: true },
+      component: () => import("../views/InviteClaimView.vue"),
     },
   ],
 });

@@ -75,6 +75,20 @@
           <router-link to="/badge-classes">Create one</router-link>
         </div>
       </div>
+
+      <hr class="section-divider" />
+
+      <h2>Static Export</h2>
+      <div class="card">
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">
+          Export this issuer's data as a self-contained static site for offline badge verification.
+          Host it on GitHub Pages or any static hosting provider.
+        </p>
+        <div v-if="exportError" class="alert alert-error">{{ exportError }}</div>
+        <button class="btn btn-primary" @click="handleExport" :disabled="exporting">
+          {{ exporting ? 'Exporting...' : 'Download Static Export' }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -83,10 +97,13 @@
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { getIssuer } from "../services/api";
+import axios from "axios";
 
 const route = useRoute();
 const loading = ref(true);
 const issuer = ref<any>(null);
+const exporting = ref(false);
+const exportError = ref("");
 
 onMounted(async () => {
   try {
@@ -95,4 +112,27 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+async function handleExport() {
+  exporting.value = true;
+  exportError.value = "";
+  try {
+    const res = await axios.get(`/api/static-export/${route.params.id}`);
+    const data = res.data;
+
+    // Build a zip-like download by creating individual files in a blob
+    // For simplicity, download as a JSON bundle that the user can unpack
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${data.issuerName.replace(/\s+/g, "-").toLowerCase()}-static-export.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e: any) {
+    exportError.value = e.response?.data?.error || "Export failed";
+  } finally {
+    exporting.value = false;
+  }
+}
 </script>

@@ -220,9 +220,10 @@ body {
 /* ---- Main Content ---- */
 .main-content {
   flex: 1;
-  padding: 40px 48px;
+  padding: 40px 36px;
   min-width: 0;
   position: relative;
+  max-width: calc(100% - 260px - 240px); /* account for both sidebars */
 }
 
 /* Subtle radial glow in the top-right */
@@ -964,6 +965,12 @@ tbody tr:last-child td {
 /* ============================================================
    RESPONSIVE
    ============================================================ */
+@media (max-width: 1200px) {
+  .main-content {
+    max-width: calc(100% - 260px);
+  }
+}
+
 @media (max-width: 1024px) {
   .main-content {
     padding: 28px 24px;

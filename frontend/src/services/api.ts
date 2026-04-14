@@ -173,6 +173,33 @@ export const authLogout = () => axios.post("/auth/logout", {}, { withCredentials
 // ---------------------------------------------------------------------------
 // Verification (public)
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Invites
+// ---------------------------------------------------------------------------
+export const getInvites = (params?: Record<string, string>) =>
+  cachedGet("/invites", params);
+export const createInvite = async (data: Record<string, unknown>) => {
+  const res = await api.post("/invites", data);
+  invalidateCache("/invites");
+  return res;
+};
+export const bulkCreateInvites = async (data: Record<string, unknown>) => {
+  const res = await api.post("/invites/bulk", data);
+  invalidateCache("/invites");
+  return res;
+};
+export const cancelInvite = async (id: string) => {
+  const res = await api.delete(`/invites/${id}`);
+  invalidateCache("/invites");
+  return res;
+};
+export const getInvitePublic = (token: string) => axios.get(`/invites/${token}`);
+export const claimInvite = (token: string, data: { recipientEmail: string; recipientName?: string }) =>
+  axios.post(`/invites/${token}/claim`, data);
+
+// ---------------------------------------------------------------------------
+// Verification (public)
+// ---------------------------------------------------------------------------
 export const verifyBadge = async (id: string, params?: Record<string, string>) => {
   const qp = params ? `?${new URLSearchParams(params)}` : "";
   const key = `/verify/${id}${qp}`;
