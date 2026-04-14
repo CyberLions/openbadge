@@ -92,7 +92,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 // Serve frontend — built files in production, proxy to Vite in dev
-const frontendDist = path.join(__dirname, "..", "..", "frontend", "dist");
+const frontendDist = process.env.FRONTEND_DIST || path.join(__dirname, "..", "..", "frontend", "dist");
 import fs from "fs";
 if (fs.existsSync(path.join(frontendDist, "index.html"))) {
   app.use(express.static(frontendDist));

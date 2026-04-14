@@ -337,7 +337,8 @@ Badge view pages and email notifications include "Add to LinkedIn" with all fiel
 |----------|---------|-------------|
 | `DATABASE_URL` | (required) | PostgreSQL connection string |
 | `APP_URL` | `http://localhost:3000` | Backend public URL |
-| `FRONTEND_URL` | `http://localhost:5173` | Frontend public URL |
+| `FRONTEND_URL` | `http://localhost:5173` | Frontend URL (dev proxy target) |
+| `FRONTEND_DIST` | (auto-detect) | Path to built frontend files (set by Docker) |
 | `AUTH_MODE` | auto-detect | `password`, `oidc`, or `disabled` |
 | `SESSION_SECRET` | (dev fallback) | HMAC secret for password auth sessions |
 | `ALLOW_REGISTRATION` | `false` | Allow new user registration (password mode) |
@@ -364,12 +365,27 @@ cd frontend && pnpm test
 
 ## Deployment
 
-Docker images are built via GitHub Actions and deployed to Rancher:
+OpenBadge ships as a single Docker image — the backend serves the built frontend.
 
 ```bash
-# Images (arm64)
-registry.psuccso.org/openbadge/openbadge-backend:latest
-registry.psuccso.org/openbadge/openbadge-frontend:latest
+# Build
+docker build -t openbadge .
+
+# Run
+docker run -p 3000:3000 \
+  -e DATABASE_URL=postgresql://user:pass@db:5432/openbadge \
+  -e APP_URL=https://badges.example.com \
+  -e AUTH_MODE=password \
+  -e SESSION_SECRET=$(openssl rand -hex 32) \
+  openbadge
+```
+
+The container runs migrations on startup, then serves the API and frontend on port 3000.
+
+For CI/CD, images are built via GitHub Actions:
+
+```bash
+registry.psuccso.org/openbadge/openbadge:latest
 ```
 
 Required GitHub secrets: `DOCKER_PASSWORD`, `RANCHER_TOKEN`
