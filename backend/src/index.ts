@@ -13,6 +13,7 @@ import { apiKeyRouter } from "./routes/api-keys";
 import { authRouter } from "./routes/auth";
 import { auditEventRouter } from "./routes/audit-events";
 import { authenticate, requireAuth } from "./middleware/auth";
+import { setupSwagger } from "./swagger";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +28,9 @@ app.use(express.json());
 
 // Serve uploaded files statically
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+
+// Swagger API docs (public, no auth)
+setupSwagger(app);
 
 // Auth routes (login/callback/logout — must be before requireAuth)
 app.use("/auth", authRouter);
