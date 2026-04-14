@@ -2,6 +2,7 @@ import { Router } from "express";
 import { randomBytes } from "crypto";
 import { authenticate } from "../middleware/auth";
 import { audit } from "../services/audit";
+import { getOidcDiscovery } from "../services/oidc-discovery";
 
 export const authRouter = Router();
 
@@ -11,41 +12,39 @@ function oidcConfig() {
   const clientSecret = process.env.OIDC_CLIENT_SECRET;
   const appUrl = process.env.APP_URL || "http://localhost:3000";
   if (!issuer || !clientId) return null;
-  return {
-    issuer: issuer.replace(/\/$/, ""),
-    clientId,
-    clientSecret,
-    redirectUri: `${appUrl}/auth/callback`,
-    appUrl,
-  };
+  return { clientId, clientSecret, redirectUri: `${appUrl}/auth/callback`, appUrl };
 }
 
-// Redirect to OIDC provider
-authRouter.get("/login", (req, res) => {
+// Redirect to OIDC provider (uses discovery for authorization_endpoint)
+authRouter.get("/login", async (req, res) => {
   const cfg = oidcConfig();
   if (!cfg) return res.status(501).json({ error: "OIDC not configured" });
 
-  const state = randomBytes(16).toString("hex");
-  res.cookie("ob_oidc_state", state, {
-    httpOnly: true,
-    sameSite: "lax",
-    maxAge: 5 * 60 * 1000,
-  });
+  try {
+    const discovery = await getOidcDiscovery();
+    const state = randomBytes(16).toString("hex");
+    res.cookie("ob_oidc_state", state, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 5 * 60 * 1000,
+    });
 
-  const params = new URLSearchParams({
-    client_id: cfg.clientId,
-    redirect_uri: cfg.redirectUri,
-    response_type: "code",
-    scope: "openid email profile",
-    state,
-  });
+    const params = new URLSearchParams({
+      client_id: cfg.clientId,
+      redirect_uri: cfg.redirectUri,
+      response_type: "code",
+      scope: "openid email profile",
+      state,
+    });
 
-  res.redirect(
-    `${cfg.issuer}/protocol/openid-connect/auth?${params.toString()}`
-  );
+    res.redirect(`${discovery.authorization_endpoint}?${params.toString()}`);
+  } catch (err) {
+    console.error("OIDC discovery failed:", err);
+    res.status(502).json({ error: "Failed to reach OIDC provider" });
+  }
 });
 
-// OIDC callback — exchange code for tokens
+// OIDC callback — exchange code for tokens (uses discovery for token_endpoint)
 authRouter.get("/callback", async (req, res) => {
   const cfg = oidcConfig();
   if (!cfg) return res.status(501).json({ error: "OIDC not configured" });
@@ -64,7 +63,7 @@ authRouter.get("/callback", async (req, res) => {
   );
 
   try {
-    const tokenUrl = `${cfg.issuer}/protocol/openid-connect/token`;
+    const discovery = await getOidcDiscovery();
     const body = new URLSearchParams({
       grant_type: "authorization_code",
       client_id: cfg.clientId,
@@ -73,7 +72,7 @@ authRouter.get("/callback", async (req, res) => {
       code: code as string,
     });
 
-    const tokenRes = await fetch(tokenUrl, {
+    const tokenRes = await fetch(discovery.token_endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: body.toString(),
@@ -139,7 +138,7 @@ authRouter.get("/me", authenticate, (req, res) => {
   res.json({ authenticated: false });
 });
 
-// Auth config — tells the frontend whether OIDC is available
+// Auth config — tells the frontend whether OIDC is available and auth is required
 authRouter.get("/config", (_req, res) => {
   const cfg = oidcConfig();
   res.json({

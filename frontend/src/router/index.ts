@@ -48,10 +48,11 @@ export const router = createRouter({
       name: "activity-log",
       component: () => import("../views/ActivityLogView.vue"),
     },
-    // Public badge viewing page
+    // Public badge viewing page (no auth required)
     {
       path: "/badges/:id",
       name: "badge-view",
+      meta: { public: true },
       component: () => import("../views/BadgeViewPublic.vue"),
     },
   ],
