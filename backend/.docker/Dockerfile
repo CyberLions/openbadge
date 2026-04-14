@@ -30,7 +30,6 @@ RUN pnpm install --frozen-lockfile --prod
 COPY --from=base /app/backend/dist backend/dist
 COPY --from=base /app/backend/prisma backend/prisma
 COPY --from=base /app/node_modules/.pnpm/@prisma+client*/  node_modules/.pnpm/@prisma+client*/
-COPY --from=base /app/node_modules/.prisma node_modules/.prisma
 
 WORKDIR /app/backend
 EXPOSE 3000
