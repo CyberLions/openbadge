@@ -200,6 +200,11 @@ export const claimInvite = (token: string, data: { recipientEmail: string; recip
 // ---------------------------------------------------------------------------
 // Verification (public)
 // ---------------------------------------------------------------------------
+export const trackBadgeView = (id: string) =>
+  axios.post(`/track/${id}/view`).catch(() => {});
+
+export const getTrackingStats = () => cachedGet("/assertions/tracking/bulk", undefined, 10_000);
+
 export const verifyBadge = async (id: string, params?: Record<string, string>) => {
   const qp = params ? `?${new URLSearchParams(params)}` : "";
   const key = `/verify/${id}${qp}`;

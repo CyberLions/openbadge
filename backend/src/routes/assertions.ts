@@ -45,6 +45,25 @@ assertionRouter.get("/", async (req, res) => {
   res.json(assertions);
 });
 
+// Get tracking stats for all assertions (bulk) — must be before /:id
+assertionRouter.get("/tracking/bulk", async (req, res) => {
+  const events = await prisma.badgeEvent.groupBy({
+    by: ["assertionId", "type"],
+    _count: { id: true },
+  });
+
+  const stats: Record<string, { emailOpens: number; linkClicks: number; badgeViews: number }> = {};
+  for (const e of events) {
+    if (!stats[e.assertionId]) {
+      stats[e.assertionId] = { emailOpens: 0, linkClicks: 0, badgeViews: 0 };
+    }
+    if (e.type === "email_open") stats[e.assertionId].emailOpens = e._count.id;
+    else if (e.type === "link_click") stats[e.assertionId].linkClicks = e._count.id;
+    else if (e.type === "badge_view") stats[e.assertionId].badgeViews = e._count.id;
+  }
+  res.json(stats);
+});
+
 // Get single assertion
 assertionRouter.get("/:id", async (req, res) => {
   const assertion = await prisma.assertion.findUnique({
@@ -229,6 +248,17 @@ assertionRouter.post("/:id/resend-email", async (req, res) => {
     console.error("Failed to resend badge email:", err);
     res.status(500).json({ error: "Failed to send email" });
   }
+});
+
+// Get tracking stats for an assertion
+assertionRouter.get("/:id/tracking", async (req, res) => {
+  const assertionId = req.params.id;
+  const [emailOpens, linkClicks, badgeViews] = await Promise.all([
+    prisma.badgeEvent.count({ where: { assertionId, type: "email_open" } }),
+    prisma.badgeEvent.count({ where: { assertionId, type: "link_click" } }),
+    prisma.badgeEvent.count({ where: { assertionId, type: "badge_view" } }),
+  ]);
+  res.json({ emailOpens, linkClicks, badgeViews });
 });
 
 // Revoke an assertion

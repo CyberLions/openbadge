@@ -139,3 +139,16 @@ model AuditEvent {
   @@index([actor])
   @@index([createdAt])
 }
+
+model BadgeEvent {
+  id          String   @id @default(uuid())
+  assertionId String
+  type        String   // "email_open" | "link_click" | "badge_view"
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([assertionId])
+  @@index([type])
+  @@index([createdAt])
+}

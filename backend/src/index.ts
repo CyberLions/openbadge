@@ -18,6 +18,7 @@ import { auditEventRouter } from "./routes/audit-events";
 import { offlineVerifyRouter } from "./routes/offline-verify";
 import { staticExportRouter } from "./routes/static-export";
 import { inviteRouter, publicInviteRouter } from "./routes/invites";
+import { trackingRouter } from "./routes/tracking";
 import { authenticate, requireAuth } from "./middleware/auth";
 import { setupSwagger } from "./swagger";
 
@@ -91,6 +92,7 @@ app.use("/ob3", publicOb3Router);
 app.use("/verify", verifyRouter);
 app.use("/offline-verify", offlineVerifyRouter);
 app.use("/invites", publicInviteRouter);
+app.use("/track", trackingRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });

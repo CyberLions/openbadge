@@ -140,7 +140,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
-import { verifyBadge } from "../services/api";
+import { verifyBadge, trackBadgeView } from "../services/api";
 
 const route = useRoute();
 const loading = ref(true);
@@ -227,6 +227,8 @@ onMounted(async () => {
     if (identityEmail) params.identity_email = identityEmail;
     const res = await verifyBadge(assertionId.value, Object.keys(params).length ? params : undefined);
     verification.value = res.data;
+    // Track badge view (fire-and-forget)
+    trackBadgeView(assertionId.value);
   } catch {
     verification.value = null;
   } finally {

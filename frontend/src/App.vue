@@ -1,26 +1,27 @@
 <template>
-  <div v-if="ready">
+  <!-- OIDC redirect in progress — show immediately, don't wait for ready -->
+  <div v-if="oidcRedirecting" class="login-page">
+    <div class="login-card">
+      <img class="brand-icon" src="/logo.svg" alt="OpenBadge" />
+      <h1>OpenBadge</h1>
+      <p>Redirecting to SSO provider...</p>
+      <a href="/auth/login" class="btn btn-primary" style="display: inline-block; margin-top: 16px;">
+        Sign in with SSO
+      </a>
+    </div>
+  </div>
+
+  <div v-else-if="ready">
     <!-- Public pages (badge viewing, landing, invite claim) — no sidebar -->
     <template v-if="isPublicRoute">
       <router-view />
     </template>
 
-    <!-- Login required but not logged in -->
+    <!-- Login required but not logged in (password mode) -->
     <template v-else-if="authRequired && !user">
-      <!-- OIDC mode: redirect directly to provider -->
-      <div v-if="authConfig?.oidcEnabled" class="login-page">
-        <div class="login-card">
-          <img class="brand-icon" src="/logo.svg" alt="OpenBadge" />
-          <h1>OpenBadge</h1>
-          <p>Redirecting to SSO provider...</p>
-          <a href="/auth/login" class="btn btn-primary" style="display: inline-block; margin-top: 16px;">
-            Sign in with SSO
-          </a>
-        </div>
-      </div>
 
       <!-- Password mode: show login form -->
-      <div v-else-if="authConfig?.passwordEnabled" class="login-page">
+      <div v-if="authConfig?.passwordEnabled" class="login-page">
         <div class="login-card" style="max-width: 420px;">
           <img class="brand-icon" src="/logo.svg" alt="OpenBadge" />
           <h1>OpenBadge</h1>
@@ -194,6 +195,7 @@ const authConfig = ref<{
   authMode: string;
 } | null>(null);
 const ready = ref(false);
+const oidcRedirecting = ref(false);
 
 // Password login state
 const loginUsername = ref("");
@@ -323,16 +325,25 @@ const currentHelp = computed(() => {
   return helpContent[name] || helpContent["dashboard"];
 });
 
+function triggerOidcRedirect() {
+  if (oidcRedirecting.value) return;
+  oidcRedirecting.value = true;
+  user.value = null;
+  // Use replace so the 401 page isn't in browser history
+  window.location.replace("/auth/login");
+}
+
 // ── Auth expiry: intercept 401s and retrigger login ──
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && user.value && !isPublicRoute.value) {
-      user.value = null;
+    if (error.response?.status === 401 && !isPublicRoute.value) {
       if (authConfig.value?.oidcEnabled) {
-        window.location.href = "/auth/login";
+        triggerOidcRedirect();
+      } else {
+        user.value = null;
+        // For password mode, the template will show the login form automatically
       }
-      // For password mode, the template will show the login form automatically
     }
     return Promise.reject(error);
   }
@@ -362,7 +373,7 @@ onMounted(async () => {
 
   // If OIDC mode and trying to access a protected route while not logged in, redirect
   if (authConfig.value?.oidcEnabled && !user.value) {
-    window.location.href = "/auth/login";
+    triggerOidcRedirect();
     return;
   }
 

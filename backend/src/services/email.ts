@@ -111,7 +111,10 @@ interface BadgeEmailParams {
 
 export async function sendBadgeEmail(params: BadgeEmailParams) {
   const email = encodeURIComponent(params.to);
-  const viewUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/badges/${params.assertionId}?identity_email=${email}`;
+  const appUrl = process.env.APP_URL || process.env.FRONTEND_URL || "http://localhost:5173";
+  const viewUrl = `${appUrl}/badges/${params.assertionId}?identity_email=${email}`;
+  const trackClickUrl = `${appUrl}/track/${params.assertionId}/click?identity_email=${email}`;
+  const trackPixelUrl = `${appUrl}/track/${params.assertionId}/pixel.png`;
   const linkedInUrl = buildLinkedInUrl(params);
   const from = process.env.SMTP_FROM || `"OpenBadge Platform" <badges@openbadge.local>`;
 
@@ -147,7 +150,7 @@ export async function sendBadgeEmail(params: BadgeEmailParams) {
   </p>
 
   <!-- View Badge Button -->
-  ${emailButton("View Your Badge", viewUrl, "#ffc300", "#001d3d")}
+  ${emailButton("View Your Badge", trackClickUrl, "#ffc300", "#001d3d")}
 
   <div style="height:12px;"></div>
 
@@ -171,6 +174,7 @@ export async function sendBadgeEmail(params: BadgeEmailParams) {
   <p style="color:#999999; font-size:12px; line-height:1.6; margin:0;">
     This credential is cryptographically signed with Ed25519 and complies with the Open Badges 2.0 and 3.0 standards.
   </p>
+  <img src="${trackPixelUrl}" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0;" />
 </td>
 </tr>`;
 

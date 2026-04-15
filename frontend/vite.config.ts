@@ -15,6 +15,7 @@ export default defineConfig({
       "/uploads": "http://localhost:3000",
       "/offline-verify": "http://localhost:3000",
       "/invites": "http://localhost:3000",
+      "/track": "http://localhost:3000",
     },
   },
 });
